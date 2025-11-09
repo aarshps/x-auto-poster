@@ -24,29 +24,19 @@ class NewsFetcher:
     def fetch_from_rss(self, rss_url):
         """Fetch news from RSS feed."""
         try:
-            import urllib.request
-            import ssl
-            
-            # Create an SSL context that's more tolerant of SSL issues
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-
-            # Add headers to avoid being blocked
-            req = urllib.request.Request(
-                rss_url,
-                data=None,
+            # Use requests library instead of urllib for better SSL handling
+            response = requests.get(
+                rss_url, 
                 headers={
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                }
+                },
+                timeout=10,
+                verify=False  # Disable SSL verification to avoid SSL issues
             )
+            response.raise_for_status()
             
-            # Fetch the RSS content with urllib, using the SSL context
-            response = urllib.request.urlopen(req, timeout=10, context=context)
-            rss_content = response.read()
-            
-            # Parse the RSS content
-            feed = feedparser.parse(rss_content)
+            # Parse the RSS content directly from the response text
+            feed = feedparser.parse(response.text)
             articles = []
 
             for entry in feed.entries:
