@@ -41,14 +41,23 @@ class NewsFetcher:
 
             for entry in feed.entries:
                 # Skip entries without essential content
-                if not entry.get('title', '').strip():
+                title = entry.get('title', '')
+                if not title.strip():
                     continue
-                    
+                
+                # Handle cases where summary might be in description instead
+                summary = entry.get('summary', '') or entry.get('description', '')
+                
+                # Handle cases where link might be in different fields
+                link = entry.get('link', '')
+                if not link and hasattr(entry, 'guid'):
+                    link = entry.get('guid', '')
+                
                 article = {
-                    'title': entry.get('title', ''),
-                    'summary': entry.get('summary', ''),
-                    'link': entry.get('link', ''),
-                    'published': entry.get('published_parsed'),
+                    'title': title,
+                    'summary': summary,
+                    'link': link,
+                    'published': entry.get('published_parsed') or entry.get('updated_parsed'),
                     'source': rss_url
                 }
 

@@ -31,7 +31,7 @@ class ConfigSetup:
                     "access_token_secret": ""
                 },
                 "news_sources": [
-                    "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+                    "https://timesofindia.indiatimes.com/rssfeeds/1221656.cms"
                 ],
                 "posting_schedule": {
                     "interval_hours": 2,
