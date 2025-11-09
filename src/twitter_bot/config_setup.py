@@ -31,9 +31,9 @@ class ConfigSetup:
                     "access_token_secret": ""
                 },
                 "news_sources": [
-                    "https://feeds.feedburner.com/ndtvnews-top-stories",
+                    "https://economictimes.indiatimes.com/rssfeedstopstories.cms",
                     "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
-                    "https://www.oneindia.com/rss-feeds/news-homepage.xml"
+                    "https://www.hindustantimes.com/rss/topnews/rssfeed.xml"
                 ],
                 "posting_schedule": {
                     "interval_hours": 2,

@@ -140,13 +140,9 @@ class NewsFetcher:
 
         # Fetch from RSS sources
         for source_url in self.config['news_sources']:
-            if source_url.endswith('.rss') or 'rss' in source_url:
-                articles = self.fetch_from_rss(source_url)
-                all_articles.extend(articles)
-            else:
-                # Assume it's an API endpoint
-                articles = self.fetch_from_api(source_url)
-                all_articles.extend(articles)
+            # Treat all sources as RSS since they are RSS feeds
+            articles = self.fetch_from_rss(source_url)
+            all_articles.extend(articles)
 
         return all_articles
 
