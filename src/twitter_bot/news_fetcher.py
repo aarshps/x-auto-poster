@@ -25,22 +25,24 @@ class NewsFetcher:
         """Fetch news from RSS feed."""
         try:
             import urllib.request
-            import socket
+            import ssl
             
-            # Set a timeout for the request
-            socket.setdefaulttimeout(10)
-            
+            # Create an SSL context that's more tolerant of SSL issues
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+
             # Add headers to avoid being blocked
             req = urllib.request.Request(
                 rss_url,
                 data=None,
                 headers={
-                    'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17'
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
             )
             
-            # Fetch the RSS content with urllib
-            response = urllib.request.urlopen(req, timeout=10)
+            # Fetch the RSS content with urllib, using the SSL context
+            response = urllib.request.urlopen(req, timeout=10, context=context)
             rss_content = response.read()
             
             # Parse the RSS content
