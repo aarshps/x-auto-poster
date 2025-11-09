@@ -8,6 +8,7 @@ This project creates an automated bot that posts trending and controversial news
 x-auto-poster/
 ├── README.md
 ├── requirements.txt
+├── setup_venv.py
 ├── setup.py
 ├── config/
 │   └── config.json
@@ -79,6 +80,18 @@ x-auto-poster/
    - Error handling and logging
 
 ## How to Run the Bot
+
+### Using Virtual Environment (Recommended)
+
+1. Install Python 3.8+ if not already installed
+2. Create and set up the virtual environment: `python setup_venv.py`
+3. Activate the virtual environment:
+   - On Windows: `venv\Scripts\activate`
+   - On macOS/Linux: `source venv/bin/activate`
+4. Set up Twitter API credentials using: `python src/twitter_bot/config_setup.py`
+5. Run the bot: `python src/twitter_bot/main.py`
+
+### Direct Installation (Not Recommended)
 
 1. Install Python 3.8+ if not already installed
 2. Install dependencies: `pip install -r requirements.txt`
