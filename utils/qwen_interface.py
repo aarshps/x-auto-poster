@@ -38,16 +38,24 @@ def generate_post_content(title, summary, link=None):
         - If a link is provided, mention it appropriately
         """
 
-        # Execute Qwen CLI to generate content
-        result = subprocess.run([
-            'qwen',
-            '-p',  # Use prompt mode
-            prompt
-        ],
-        capture_output=True,
-        text=True,
-        timeout=30  # 30 second timeout
-        )
+        # Execute Qwen CLI to generate content in non-interactive mode
+        # On Windows, use the shell=True to properly execute .cmd files
+        import platform
+        if platform.system() == "Windows":
+            result = subprocess.run(
+                f'qwen -p "{prompt}"',
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+        else:
+            result = subprocess.run(
+                ['qwen', '-p', prompt],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
 
         if result.returncode == 0:
             generated_content = result.stdout.strip()
@@ -72,14 +80,57 @@ def generate_post_content(title, summary, link=None):
             return generated_content
         else:
             logger.error(f"Qwen CLI error: {result.stderr}")
-            return None
+            # Fallback: create a simple post format
+            return create_simple_post(title, summary, link)
 
     except subprocess.TimeoutExpired:
         logger.error("Qwen CLI call timed out")
-        return None
+        # Fallback: create a simple post format
+        return create_simple_post(title, summary, link)
     except Exception as e:
         logger.error(f"Error calling Qwen CLI: {e}")
-        return None
+        # Fallback: create a simple post format
+        return create_simple_post(title, summary, link)
+
+def create_simple_post(title, summary, link=None):
+    """
+    Create a simple fallback post when Qwen CLI is not available.
+    
+    Args:
+        title (str): News title
+        summary (str): News summary/description
+        link (str, optional): News article link
+    
+    Returns:
+        str: Simple formatted post content
+    """
+    import os
+    
+    # Get the max post length from environment variable with a default of 280
+    max_post_length = int(os.getenv('MAX_POST_LENGTH', 280))
+    
+    # Extract a short summary for the post
+    clean_title = title.strip()
+    
+    if link:
+        # Create a post with link and truncate as needed
+        post = f"{clean_title} Read more: {link}"
+        # If too long, truncate the title
+        if len(post) > max_post_length:
+            available_length = max_post_length - len("... Read more: ") - len(link)
+            if available_length > 10:  # Ensure we have some title
+                post = f"{clean_title[:available_length]}... Read more: {link}"
+            else:
+                # If link is too long for the limit, just use title
+                post = clean_title[:max_post_length-3] + "..."
+    else:
+        # Create a post without link
+        post = clean_title
+        if len(post) > max_post_length:
+            post = post[:max_post_length-3] + "..."
+    
+    logger.info(f"Generated fallback post: {post}")
+    return post
 
 def enhance_post_with_qwen(post_content, context_info):
     """

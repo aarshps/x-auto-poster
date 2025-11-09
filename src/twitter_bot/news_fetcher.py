@@ -78,8 +78,11 @@ class NewsFetcher:
                         # Check if article is within acceptable age range
                         min_news_age_minutes = int(os.getenv('MIN_NEWS_AGE_MINUTES',
                                                            self.config['content_settings']['min_news_age_minutes']))
-                        if datetime.now() - published_datetime > timedelta(minutes=min_news_age_minutes):
-                            logger.debug(f"Article '{title}' is too old: {published_datetime}")
+                        age_in_minutes = (datetime.now() - published_datetime).total_seconds() / 60
+                        logger.debug(f"Article '{title[:50]}...' published at {published_datetime}, age: {age_in_minutes:.2f} min, threshold: {min_news_age_minutes} min")
+                        
+                        if datetime.now() - published_datetime < timedelta(minutes=min_news_age_minutes):
+                            logger.debug(f"Article '{title[:50]}...' is too new: {published_datetime}")
                             should_include = False
                     except (TypeError, ValueError, IndexError) as e:
                         logger.warning(f"Could not parse date for article '{title}': {e}")
@@ -149,10 +152,16 @@ class NewsFetcher:
     def filter_trending_news(self, articles):
         """Filter for trending and controversial news."""
         trending_articles = []
+        
+        logger.info(f"Starting trending news filter with {len(articles)} articles")
+        logger.info(f"Using controversy threshold: {os.getenv('CONTROVERSY_THRESHOLD', self.config['content_settings']['controversy_threshold'])}")
 
         for article in articles:
             # Estimate controversy score
             controversy_score = self.estimate_controversy(article)
+            
+            # Log details for debugging
+            logger.debug(f"Article: {article.get('title', 'No title')[:50]}... | Score: {controversy_score:.2f}")
 
             # Get controversy threshold from environment variable or config
             controversy_threshold = float(os.getenv('CONTROVERSY_THRESHOLD',
@@ -161,6 +170,10 @@ class NewsFetcher:
             if controversy_score >= controversy_threshold:
                 article['controversy_score'] = controversy_score
                 trending_articles.append(article)
+            else:
+                logger.debug(f"Article below threshold: {article.get('title', 'No title')[:50]}... | Score: {controversy_score:.2f}")
+
+        logger.info(f"Found {len(trending_articles)} trending articles after filtering")
 
         # Sort by controversy score and recency
         trending_articles.sort(key=lambda x: (x['controversy_score'], x.get('published', datetime.min)), reverse=True)
