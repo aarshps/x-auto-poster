@@ -43,7 +43,7 @@ class ConfigSetup:
                 "content_settings": {
                     "max_post_length": 280,
                     "controversy_threshold": 0.7,
-                    "min_news_age_minutes": 15
+                    "min_news_age_minutes": 10080
                 }
             }
 
