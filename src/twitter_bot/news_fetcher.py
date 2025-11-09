@@ -24,8 +24,27 @@ class NewsFetcher:
     def fetch_from_rss(self, rss_url):
         """Fetch news from RSS feed."""
         try:
-            # Add timeout to avoid hanging requests
-            feed = feedparser.parse(rss_url, request_timeout=10)
+            import urllib.request
+            import socket
+            
+            # Set a timeout for the request
+            socket.setdefaulttimeout(10)
+            
+            # Add headers to avoid being blocked
+            req = urllib.request.Request(
+                rss_url,
+                data=None,
+                headers={
+                    'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17'
+                }
+            )
+            
+            # Fetch the RSS content with urllib
+            response = urllib.request.urlopen(req, timeout=10)
+            rss_content = response.read()
+            
+            # Parse the RSS content
+            feed = feedparser.parse(rss_content)
             articles = []
 
             for entry in feed.entries:
