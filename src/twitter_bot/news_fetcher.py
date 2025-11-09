@@ -67,24 +67,25 @@ class NewsFetcher:
                     'source': rss_url
                 }
 
-                # Convert published time to datetime object if available
+                # Check if we should include this article based on age
+                should_include = True  # Default to including if no date
+
                 if article['published']:
                     try:
-                        article['published'] = datetime(*article['published'][:6])
+                        published_datetime = datetime(*article['published'][:6])
+                        article['published'] = published_datetime  # Store the datetime object
+                        
                         # Check if article is within acceptable age range
                         min_news_age_minutes = int(os.getenv('MIN_NEWS_AGE_MINUTES',
                                                            self.config['content_settings']['min_news_age_minutes']))
-                        if datetime.now() - article['published'] < timedelta(minutes=min_news_age_minutes):
-                            articles.append(article)
-                        else:
-                            logger.debug(f"Article '{title}' is too old: {article['published']}")
-                    except (TypeError, ValueError) as e:
+                        if datetime.now() - published_datetime > timedelta(minutes=min_news_age_minutes):
+                            logger.debug(f"Article '{title}' is too old: {published_datetime}")
+                            should_include = False
+                    except (TypeError, ValueError, IndexError) as e:
                         logger.warning(f"Could not parse date for article '{title}': {e}")
-                        # If we can't parse the date but still want to include it, add it anyway
-                        articles.append(article)
-                else:
-                    # If no published time, just add the entry
-                    logger.debug(f"Article '{title}' has no published date, including anyway")
+                        # If we can't parse the date, still include it
+
+                if should_include:
                     articles.append(article)
 
             logger.info(f"Successfully fetched {len(articles)} articles from {rss_url}")
