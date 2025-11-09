@@ -4,6 +4,11 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +41,10 @@ class NewsFetcher:
                     article['published'] = datetime(*article['published'][:6])
                 
                 # Only include recent news (within specified time)
+                min_news_age_minutes = int(os.getenv('MIN_NEWS_AGE_MINUTES', 
+                                                   self.config['content_settings']['min_news_age_minutes']))
                 if article['published']:
-                    if datetime.now() - article['published'] < timedelta(minutes=self.config['content_settings']['min_news_age_minutes']):
+                    if datetime.now() - article['published'] < timedelta(minutes=min_news_age_minutes):
                         articles.append(article)
                 else:
                     # If no published time, just add the entry
@@ -112,8 +119,11 @@ class NewsFetcher:
             # Estimate controversy score
             controversy_score = self.estimate_controversy(article)
             
+            # Get controversy threshold from environment variable or config
+            controversy_threshold = float(os.getenv('CONTROVERSY_THRESHOLD', 
+                                                  self.config['content_settings']['controversy_threshold']))
             # Only include articles that meet the controversy threshold
-            if controversy_score >= self.config['content_settings']['controversy_threshold']:
+            if controversy_score >= controversy_threshold:
                 article['controversy_score'] = controversy_score
                 trending_articles.append(article)
         
