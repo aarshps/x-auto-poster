@@ -3,6 +3,11 @@ import time
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from .news_fetcher import NewsFetcher
 from .twitter_client import TwitterClient
 from utils.qwen_interface import generate_post_content

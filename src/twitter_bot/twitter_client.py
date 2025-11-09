@@ -2,6 +2,11 @@ import tweepy
 import logging
 from pathlib import Path
 import json
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +23,19 @@ class TwitterClient:
     def setup_client(self):
         """Initialize Twitter API v2 client."""
         try:
+            # Get credentials from environment variables with fallback to config file
+            bearer_token = os.getenv('BEARER_TOKEN') or self.config['twitter']['bearer_token']
+            consumer_key = os.getenv('API_KEY') or self.config['twitter']['api_key']
+            consumer_secret = os.getenv('API_KEY_SECRET') or self.config['twitter']['api_secret']
+            access_token = os.getenv('ACCESS_TOKEN') or self.config['twitter']['access_token']
+            access_token_secret = os.getenv('ACCESS_TOKEN_SECRET') or self.config['twitter']['access_token_secret']
+            
             client = tweepy.Client(
-                bearer_token=self.config['twitter']['bearer_token'],
-                consumer_key=self.config['twitter']['api_key'],
-                consumer_secret=self.config['twitter']['api_secret'],
-                access_token=self.config['twitter']['access_token'],
-                access_token_secret=self.config['twitter']['access_token_secret']
+                bearer_token=bearer_token,
+                consumer_key=consumer_key,
+                consumer_secret=consumer_secret,
+                access_token=access_token,
+                access_token_secret=access_token_secret
             )
             logger.info("Twitter API client initialized successfully")
             return client
