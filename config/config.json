@@ -1,0 +1,27 @@
+{
+  "twitter": {
+    "bearer_token": "",
+    "api_key": "",
+    "api_secret": "",
+    "access_token": "",
+    "access_token_secret": ""
+  },
+  "news_sources": [
+    "https://rss.cnn.com/rss/edition.rss",
+    "http://feeds.reuters.com/reuters/topNews",
+    "https://rss.ap.org/apis/json/f/APF-Top-News-Use-For-App-Use-Only-1.json",
+    "https://www.theguardian.com/international/rss"
+  ],
+  "posting_schedule": {
+    "interval_hours": 2,
+    "active_hours": {
+      "start": 8,
+      "end": 22
+    }
+  },
+  "content_settings": {
+    "max_post_length": 280,
+    "controversy_threshold": 0.7,
+    "min_news_age_minutes": 15
+  }
+}
