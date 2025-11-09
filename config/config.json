@@ -8,9 +8,9 @@
   },
   "news_sources": [
     "https://rss.cnn.com/rss/edition.rss",
-    "http://feeds.reuters.com/reuters/topNews",
-    "https://rss.ap.org/apis/json/f/APF-Top-News-Use-For-App-Use-Only-1.json",
-    "https://www.theguardian.com/international/rss"
+    "https://feeds.bbci.co.uk/news/rss.xml",
+    "https://www.theguardian.com/international/rss",
+    "https://rss.nypost.com/feed"
   ],
   "posting_schedule": {
     "interval_hours": 2,

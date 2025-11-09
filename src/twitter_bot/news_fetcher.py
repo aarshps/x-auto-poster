@@ -15,19 +15,24 @@ logger = logging.getLogger(__name__)
 class NewsFetcher:
     def __init__(self, config_path="config/config.json"):
         self.config = self.load_config(config_path)
-    
+
     def load_config(self, config_path):
         """Load configuration from JSON file."""
         with open(config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
-    
+
     def fetch_from_rss(self, rss_url):
         """Fetch news from RSS feed."""
         try:
-            feed = feedparser.parse(rss_url)
+            # Add timeout to avoid hanging requests
+            feed = feedparser.parse(rss_url, request_timeout=10)
             articles = []
-            
+
             for entry in feed.entries:
+                # Skip entries without essential content
+                if not entry.get('title', '').strip():
+                    continue
+                    
                 article = {
                     'title': entry.get('title', ''),
                     'summary': entry.get('summary', ''),
@@ -35,13 +40,13 @@ class NewsFetcher:
                     'published': entry.get('published_parsed'),
                     'source': rss_url
                 }
-                
+
                 # Convert published time to datetime object if available
                 if article['published']:
                     article['published'] = datetime(*article['published'][:6])
-                
+
                 # Only include recent news (within specified time)
-                min_news_age_minutes = int(os.getenv('MIN_NEWS_AGE_MINUTES', 
+                min_news_age_minutes = int(os.getenv('MIN_NEWS_AGE_MINUTES',
                                                    self.config['content_settings']['min_news_age_minutes']))
                 if article['published']:
                     if datetime.now() - article['published'] < timedelta(minutes=min_news_age_minutes):
@@ -49,21 +54,22 @@ class NewsFetcher:
                 else:
                     # If no published time, just add the entry
                     articles.append(article)
-            
+
             logger.info(f"Fetched {len(articles)} articles from {rss_url}")
             return articles
-            
+
         except Exception as e:
             logger.error(f"Error fetching RSS feed from {rss_url}: {e}")
             return []
-    
+
     def fetch_from_api(self, api_url, headers=None):
         """Fetch news from API endpoint."""
         try:
-            response = requests.get(api_url, headers=headers)
+            # Add timeout to the API request
+            response = requests.get(api_url, headers=headers, timeout=10)
             response.raise_for_status()
             data = response.json()
-            
+
             articles = []
             # Different APIs have different structures, this is a generic approach
             # For specific APIs like NewsAPI, you'd need to customize the parsing
@@ -77,14 +83,14 @@ class NewsFetcher:
                         'source': api_url
                     }
                     articles.append(article)
-            
+
             logger.info(f"Fetched {len(articles)} articles from API {api_url}")
             return articles
-            
+
         except Exception as e:
             logger.error(f"Error fetching from API {api_url}: {e}")
             return []
-    
+
     def _parse_datetime(self, datetime_str):
         """Parse datetime string to datetime object."""
         if not datetime_str:
@@ -94,11 +100,11 @@ class NewsFetcher:
             return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
         except ValueError:
             return None
-    
+
     def fetch_all_news(self):
         """Fetch news from all configured sources."""
         all_articles = []
-        
+
         # Fetch from RSS sources
         for source_url in self.config['news_sources']:
             if source_url.endswith('.rss') or 'rss' in source_url:
@@ -108,30 +114,30 @@ class NewsFetcher:
                 # Assume it's an API endpoint
                 articles = self.fetch_from_api(source_url)
                 all_articles.extend(articles)
-        
+
         return all_articles
-    
+
     def filter_trending_news(self, articles):
         """Filter for trending and controversial news."""
         trending_articles = []
-        
+
         for article in articles:
             # Estimate controversy score
             controversy_score = self.estimate_controversy(article)
-            
+
             # Get controversy threshold from environment variable or config
-            controversy_threshold = float(os.getenv('CONTROVERSY_THRESHOLD', 
+            controversy_threshold = float(os.getenv('CONTROVERSY_THRESHOLD',
                                                   self.config['content_settings']['controversy_threshold']))
             # Only include articles that meet the controversy threshold
             if controversy_score >= controversy_threshold:
                 article['controversy_score'] = controversy_score
                 trending_articles.append(article)
-        
+
         # Sort by controversy score and recency
         trending_articles.sort(key=lambda x: (x['controversy_score'], x.get('published', datetime.min)), reverse=True)
-        
+
         return trending_articles
-    
+
     def estimate_controversy(self, article):
         """Estimate how controversial an article might be."""
         # This is a simple keyword-based approach
@@ -142,21 +148,21 @@ class NewsFetcher:
             'terrorism', 'shootings', 'riots', 'militants', 'dictator', 'authoritarian',
             'censorship', 'human rights', 'freedom', 'opposition', 'repression'
         ]
-        
+
         text = (article['title'] + ' ' + article['summary']).lower()
         controversy_score = 0
-        
+
         # Count controversial keywords
         for keyword in controversial_keywords:
             if keyword in text:
                 controversy_score += 0.1
-        
+
         # Increase score for certain high-impact words
         high_impact_words = ['war', 'terrorism', 'crisis', 'scandal', 'corruption', 'shootings', 'riots']
         for word in high_impact_words:
             if word in text:
                 controversy_score += 0.2
-        
+
         # Ensure score is between 0 and 1
         return min(max(controversy_score, 0.0), 1.0)
 
@@ -164,10 +170,10 @@ if __name__ == "__main__":
     fetcher = NewsFetcher()
     articles = fetcher.fetch_all_news()
     trending = fetcher.filter_trending_news(articles)
-    
+
     print(f"Found {len(articles)} total articles")
     print(f"Found {len(trending)} trending articles")
-    
+
     for article in trending[:5]:  # Print top 5 trending articles
         print(f"Title: {article['title']}")
         print(f"Controversy Score: {article['controversy_score']:.2f}")
