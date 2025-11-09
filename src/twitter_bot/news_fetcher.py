@@ -39,10 +39,13 @@ class NewsFetcher:
             feed = feedparser.parse(response.text)
             articles = []
 
+            logger.info(f"RSS feed has {len(feed.entries)} entries from {rss_url}")
+            
             for entry in feed.entries:
                 # Skip entries without essential content
                 title = entry.get('title', '')
                 if not title.strip():
+                    logger.debug(f"Skipping entry without title: {entry.keys()}")
                     continue
                 
                 # Handle cases where summary might be in description instead
@@ -53,29 +56,38 @@ class NewsFetcher:
                 if not link and hasattr(entry, 'guid'):
                     link = entry.get('guid', '')
                 
+                # Check published date
+                published_parsed = entry.get('published_parsed') or entry.get('updated_parsed')
+                
                 article = {
                     'title': title,
                     'summary': summary,
                     'link': link,
-                    'published': entry.get('published_parsed') or entry.get('updated_parsed'),
+                    'published': published_parsed,
                     'source': rss_url
                 }
 
                 # Convert published time to datetime object if available
                 if article['published']:
-                    article['published'] = datetime(*article['published'][:6])
-
-                # Only include recent news (within specified time)
-                min_news_age_minutes = int(os.getenv('MIN_NEWS_AGE_MINUTES',
-                                                   self.config['content_settings']['min_news_age_minutes']))
-                if article['published']:
-                    if datetime.now() - article['published'] < timedelta(minutes=min_news_age_minutes):
+                    try:
+                        article['published'] = datetime(*article['published'][:6])
+                        # Check if article is within acceptable age range
+                        min_news_age_minutes = int(os.getenv('MIN_NEWS_AGE_MINUTES',
+                                                           self.config['content_settings']['min_news_age_minutes']))
+                        if datetime.now() - article['published'] < timedelta(minutes=min_news_age_minutes):
+                            articles.append(article)
+                        else:
+                            logger.debug(f"Article '{title}' is too old: {article['published']}")
+                    except (TypeError, ValueError) as e:
+                        logger.warning(f"Could not parse date for article '{title}': {e}")
+                        # If we can't parse the date but still want to include it, add it anyway
                         articles.append(article)
                 else:
                     # If no published time, just add the entry
+                    logger.debug(f"Article '{title}' has no published date, including anyway")
                     articles.append(article)
 
-            logger.info(f"Fetched {len(articles)} articles from {rss_url}")
+            logger.info(f"Successfully fetched {len(articles)} articles from {rss_url}")
             return articles
 
         except Exception as e:
