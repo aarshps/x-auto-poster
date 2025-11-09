@@ -89,7 +89,10 @@ x-auto-poster/
    - On Windows: `venv\Scripts\activate`
    - On macOS/Linux: `source venv/bin/activate`
 4. Set up Twitter API credentials using: `python src/twitter_bot/config_setup.py`
+   - Or manually create a `.env` file with your API credentials
 5. Run the bot: `python src/twitter_bot/main.py`
+
+**Note:** Make sure your `.env` file is properly configured with Twitter API credentials before running the bot. The `.env` file is ignored by git for security.
 
 ### Direct Installation (Not Recommended)
 

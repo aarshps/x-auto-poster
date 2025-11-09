@@ -3,13 +3,19 @@ import time
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+import sys
+import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-from .news_fetcher import NewsFetcher
-from .twitter_client import TwitterClient
+# Add the project root directory to Python path to allow absolute imports
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from src.twitter_bot.news_fetcher import NewsFetcher
+from src.twitter_bot.twitter_client import TwitterClient
 from utils.qwen_interface import generate_post_content
 
 # Set up logging

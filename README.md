@@ -77,6 +77,8 @@ This will guide you through setting up your Twitter API credentials.
 python src/twitter_bot/main.py
 ```
 
+**Note:** Make sure your `.env` file is properly configured with Twitter API credentials before running the bot.
+
 ### Without Virtual Environment
 ```bash
 python src/twitter_bot/main.py
