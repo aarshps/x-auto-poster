@@ -7,8 +7,10 @@
     "access_token_secret": ""
   },
   "news_sources": [
-    "https://feeds.bbci.co.uk/news/rss.xml",
-    "https://www.theguardian.com/international/rss"
+    "https://www.ndtv.com/rss/latest/feed",
+    "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
+    "https://www.thehindu.com/news/feeder/default.rss",
+    "https://www.firstpost.com/rss.xml"
   ],
   "posting_schedule": {
     "interval_hours": 2,
