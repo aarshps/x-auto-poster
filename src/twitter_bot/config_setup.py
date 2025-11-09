@@ -31,10 +31,8 @@ class ConfigSetup:
                     "access_token_secret": ""
                 },
                 "news_sources": [
-                    "https://rss.cnn.com/rss/edition.rss",
                     "https://feeds.bbci.co.uk/news/rss.xml",
-                    "https://www.theguardian.com/international/rss",
-                    "https://rss.nypost.com/feed"
+                    "https://www.theguardian.com/international/rss"
                 ],
                 "posting_schedule": {
                     "interval_hours": 2,
